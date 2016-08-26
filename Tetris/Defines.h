@@ -1,7 +1,7 @@
 #pragma once
 //window related defines
-#define WINDOW_WIDTH  800
-#define WINDOW_HEIGHT  600
+#define WINDOW_WIDTH  300
+#define WINDOW_HEIGHT  400
 #define WINDOW_CAPTION  "Tetris Game"
 #define GAME_AREA_LEFT 53
 #define GAME_AREA_RIGHT 251

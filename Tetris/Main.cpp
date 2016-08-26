@@ -54,12 +54,6 @@ void ChangeFocusBlock();
 int CheckCompletedLines();
 
 
-//Collisions Functions
-bool CheckEntityCollisions(cSquare* square, Direction dir);
-bool CheckWallCollisions(cSquare* square, Direction dir);
-bool CheckEntityCollisions(cBlock* block, Direction dir);
-bool CheckWallCollisions(cBlock* block, Direction dir);
-bool CheckRotationCollisions(cBlock* block);
 
 
 
@@ -67,17 +61,11 @@ bool CheckRotationCollisions(cBlock* block);
 void Init();
 void ShutDown();
 
-//Helper Functions for the game 
-void DrawBackground();
-void ClearScreen();
-void DisplayText(string text, int x, int y, int w, int h, int size, int fR, int fG, int fB, int bR, int bG, int bB);
-void HandleMenuInput();
-void HandleGameInput();
-void HandleExitInput();
 
 
-//Helper functions LIVE 
+//Helper functions LIVE   | FINISHED 
 #pragma region Helper Functions Handling 
+
 
 void ClearScreen()
 {
@@ -273,6 +261,7 @@ void HandleExitInput()
 		}
 	}
 }
+//FINISHED
 void DisplayText(string text, int x, int y , int w, int h, int size, int fR, int fG, int fB, int bR, int bG, int bB)
 {
 	TTF_Font* font = TTF_OpenFont("C://Users/Admin/Documents/Tetris_Clone/Tetris/arial.ttf", size);
@@ -325,13 +314,158 @@ void DisplayText(string text, int x, int y , int w, int h, int size, int fR, int
 
 #pragma endregion
 
-//Collider Functions Live
+//Collider Functions Live  | FINISHED 
 #pragma region Collider Functions
-bool CheckEntityCollisions(cSquare* square, Direction dir) { return true; }
-bool CheckWallCollisions(cSquare* square, Direction dir) { return true; }
-bool CheckEntityCollisions(cBlock* block, Direction dir) { return true; }
-bool CheckWallCollisions(cBlock* block, Direction dir) { return true; }
-bool CheckRotationCollisions(cBlock* block) { return true; }
+
+
+//Collisions Functions
+bool CheckEntityCollisions(cSquare* square, Direction dir);
+bool CheckWallCollisions(cSquare* square, Direction dir);
+bool CheckEntityCollisions(cBlock* block, Direction dir);
+bool CheckWallCollisions(cBlock* block, Direction dir);
+bool CheckRotationCollisions(cBlock* block);
+
+
+bool CheckEntityCollisions(cSquare* square, Direction dir)
+{
+	//Check collisions between a given square and the square in g_oldsquares 
+	//Distance between two squares if they have collided
+	int distance = SQUARE_MEDIAN * 2;
+	//center of given square 
+	int centerX = square->GetCenterX(), centerY = square->GetCenterY();
+
+	switch (dir)
+	{
+	case LEFT:
+		centerX -= distance; 
+		break;
+	case RIGHT:
+		centerX += distance;
+		break;
+	case DOWN:
+		centerY += distance;
+		break;
+	default:
+		break;
+	}
+	//iterate trough the old square vector, checking for collisions
+	for (int i = 0; i < g_OldSquares.size(); i++)
+	{
+		if (abs(centerX - g_OldSquares[i]->GetCenterX()) < distance && abs(centerY - g_OldSquares[i]->GetCenterY()) < distance)
+		{
+			return true;
+		}
+		else { return false; }
+	}
+
+
+	return false;
+}
+bool CheckWallCollisions(cSquare* square, Direction dir)
+{
+	//check Collisions between a given square  and the sides of the game area 
+	int x = square->GetCenterX() , y = square->GetCenterY();
+
+	//get the location of the square after moving and see if its out of bonds 
+	switch (dir)
+	{
+	case LEFT:
+		if ((x - (SQUARE_MEDIAN * 2)) < GAME_AREA_LEFT)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+		break;
+	case RIGHT:
+		if ((x + (SQUARE_MEDIAN * 2)) > GAME_AREA_RIGHT)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+		break;
+	case DOWN:
+		if ((y + (SQUARE_MEDIAN *2)) > GAME_AREA_BOTTOM)
+		{
+			return true;
+		}
+		else 
+		{
+			return false; 
+		}
+		break;
+	default:
+		break;
+	}
+
+	return false;
+}
+bool CheckEntityCollisions(cBlock* block, Direction dir) 
+{
+	cSquare** temp_array = block->Getsquares();
+
+	//check collision for each one of the squares of the focus piece 
+	for (int i = 0; i < 4; i++)
+	{
+		if (CheckEntityCollisions(temp_array[i] , dir))
+		{
+			return true;
+		}
+	}
+
+	return false; 
+}
+bool CheckWallCollisions(cBlock* block, Direction dir) 
+{
+	//cSquare** temp_array  = block->
+	cSquare** temp_array = block->Getsquares();
+	for (int i = 0; i < 4; i++)
+	{
+		if (CheckWallCollisions(temp_array[i],dir))
+		{
+			return true;
+		}
+	}
+	return false; 
+}
+bool CheckRotationCollisions(cBlock* block) 
+{
+	//Get an array of values for the location of the rotated block's squares 
+	int* temp_array = block->GetRotatedSquares();
+
+	//distance the two touching sqaures 
+	int distance = SQUARE_MEDIAN * 2;
+	for (int i = 0; i < 4; i++)
+	{
+		//check if the block will go out of bounds 
+		if ((temp_array[i*2] < GAME_AREA_LEFT) || (temp_array[i*2] >  GAME_AREA_RIGHT))
+		{
+			delete temp_array;
+			return true;
+		}
+		if (temp_array[i*2 + 1 ] > GAME_AREA_BOTTOM)
+		{
+			delete temp_array; 
+			return true;
+		}
+		//we also check if the block does not collide wiht any other squares 
+		for (int j = 0; j < g_OldSquares.size(); j++)
+		{
+			if (abs(temp_array[i*2] - g_OldSquares[j]->GetCenterX() < distance ) && abs(temp_array[i*2 + 1 ] - g_OldSquares[j]->GetCenterY() < distance))
+			{
+				delete temp_array;
+				return true;
+			}
+		}
+	}
+	delete temp_array;
+	return false; 
+}
 #pragma endregion
 
 
@@ -567,7 +701,45 @@ void Exit()
 
 void Win() {}
 void Lose() {}
-void HandleWinLoseInput() {}
+void HandleWinLoseInput() 
+{
+	if (SDL_PollEvent(&g_Event))
+	{
+		if (g_Event.type == SDL_QUIT)
+		{
+			while (!g_stateStack.empty())
+			{
+				g_stateStack.pop();
+				return;
+			}
+		}
+		//handle keyboard input 
+		if (g_Event.type == SDL_KEYDOWN)
+		{
+			if (g_Event.key.keysym.sym == SDLK_ESCAPE)
+			{
+				g_stateStack.pop();
+				return;
+			}
+			if (g_Event.key.keysym.sym == SDLK_y)
+			{
+				g_stateStack.pop();
+				return;
+			}
+			// if player chooses to continue playing, we pop off current state and push exit and menu states back on
+			if (g_Event.key.keysym.sym == SDLK_n)
+			{
+				g_stateStack.pop();
+				StateSturct temp; 
+				temp.StatePointer = Exit;
+				g_stateStack.push(temp);
+				temp.StatePointer = Menu;
+				g_stateStack.push(temp);
+				return;
+			}
+		}
+	}
+}
 //win conditions 
 void CheckWin() {}
 void CheckLoss() {}
