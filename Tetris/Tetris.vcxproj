@@ -69,8 +69,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Users\Admin\Documents\Tetris\SDL2_ttf-2.0.14\include;C:\Users\Admin\Documents\Tetris\SDL2_image-2.0.1\include;C:\Users\Admin\Documents\Tetris\SDL\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Admin\Documents\Tetris\SDL2_ttf-2.0.14\lib\x86;C:\Users\Admin\Documents\Tetris\SDL\lib\win32;C:\Users\Admin\Documents\Tetris\SDL2_image-2.0.1\lib\x86;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\Admin\Documents\Tetris_Clone\SDL2_ttf-2.0.14\include;C:\Users\Admin\Documents\Tetris_Clone\SDL2_image-2.0.1\include;C:\Users\Admin\Documents\Tetris_Clone\SDL\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Admin\Documents\Tetris_Clone\SDL2_ttf-2.0.14\lib\x86;C:\Users\Admin\Documents\Tetris_Clone\SDL2_image-2.0.1\lib\x86;C:\Users\Admin\Documents\Tetris_Clone\SDL\lib\win32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -79,7 +79,8 @@
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SDL2.lib;SDL2_Image.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -116,7 +117,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="cBlock.h" />
+    <ClInclude Include="cSquare.h" />
     <ClInclude Include="Defines.h" />
+    <ClInclude Include="Enums.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
