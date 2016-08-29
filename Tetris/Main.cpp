@@ -699,8 +699,34 @@ void Exit()
 	}
 }
 
-void Win() {}
-void Lose() {}
+void GameWon() 
+{
+	if ((SDL_GetTicks() - g_Timer) >= FRAME_RATE)
+	{
+		HandleWinLoseInput();
+		ClearScreen();
+		DisplayText("You Win!!!", 100, 120, 100, 30, 12, 255, 255, 255, 0, 0, 0);
+		DisplayText("Quit Game (Y or N)?", 100, 140, 100, 30, 12, 255, 255, 255, 0, 0, 0);
+
+		 SDL_RenderPresent(gRenderer);
+		 g_Timer = SDL_GetTicks();
+
+	}
+}
+void GameLost()
+{
+	if ((SDL_GetTicks() - g_Timer) >= FRAME_RATE)
+	{
+		HandleWinLoseInput();
+		ClearScreen();
+		DisplayText("You Lose.", 100, 120,100,30, 12, 255, 255, 255, 0, 0,
+			0);
+		DisplayText("Quit Game (Y or N)?", 100, 140,100,30, 12, 255, 255,
+			255, 0, 0, 0);
+		SDL_RenderPresent(gRenderer);
+		g_Timer = SDL_GetTicks();
+	}
+}
 void HandleWinLoseInput() 
 {
 	if (SDL_PollEvent(&g_Event))
@@ -741,13 +767,167 @@ void HandleWinLoseInput()
 	}
 }
 //win conditions 
-void CheckWin() {}
-void CheckLoss() {}
+void CheckWin() 
+{
+	//if current level is greater than number of levels, player has won
+	if (g_Level > NUM_LEVELS)
+	{
+		while (!g_stateStack.empty())
+		{
+			g_stateStack.pop();
+		}
+		//Push teh victory state onto the stack 
+		StateSturct win;
+		win.StatePointer = GameWon;
+		g_stateStack.push(win);
+		
+	}
+}
+void CheckLoss()
+{
+	//we call this function when the focus block is at the top of that, if the focus block is stuck now, is game over 
+	if (CheckEntityCollisions(g_FocusBlock ,DOWN))
+	{
+		//we clear all the square vector 
+		for (int i = 0; i < g_OldSquares.size(); i++)
+		{
+			delete g_OldSquares[i];
+		}
+		g_OldSquares.clear();
+		//pop all states 
+		while (!g_stateStack.empty())
+		{
+			g_stateStack.pop();
+		}
+		//Push the losing state onto the stack 
+		StateSturct lose;
+		lose.StatePointer = GameLost;
+		g_stateStack.push(lose);
+	}
+}
+
 
 //CHANGE SQUARE HANDLING 
-void HandleBottomCollision() {}
-void ChangeFocusBlock() {}
-int CheckCompletedLines() { return 0; }
+void HandleBottomCollision()
+{
+	ChangeFocusBlock();
+	//check for completed lines and store the number of lines completed 
+	int num_lines = CheckCompletedLines();
+	if (num_lines >  0 )
+	{
+		//Increase the player score according to number of lines completed 
+		g_Score += POINTS_PER_LINE * num_lines;
+		//check if it is time for a new level 
+		if (g_Score >= g_Level * POINTS_PER_LEVEL)
+		{
+			g_Level++;
+			CheckWin();
+			//shorten teh focus blocks movement interval 
+			g_FocusBlockSpeed -= SPEED_CHANGE;
+		}
+	}
+	//now would be a good time to check to see if the player has lost
+	CheckLoss();
+
+
+}
+void ChangeFocusBlock() 
+{
+	//Add the squares of the focus block to g_oldsquares   
+	//and set the next block as the focus block 
+
+	//get an array of pointers to the focus block of squares 
+	cSquare**  square_array = g_FocusBlock->Getsquares();
+
+	//add focus block to the vector 
+	for (int i = 0; i < 4; i++)
+	{
+		g_OldSquares.push_back(square_array[i]);
+	}
+	delete g_FocusBlock;
+	g_FocusBlock = g_NextBlock;
+
+	g_FocusBlock->SetupSquares(BLOCK_START_X, BLOCK_START_Y, g_Bitmap);
+	g_NextBlock = new cBlock(NEXT_BLOCK_CIRCLE_X, NEXT_BLOCK_CIRCLE_Y,  g_Bitmap, (BlockType)(rand() % 7));
+
+}
+int CheckCompletedLines()
+{
+	//Return the amount of lines cleared of zero if no lines were cleared 
+	//store the amount of squares in each row in an array 
+	int squares_per_row[13];
+
+	//the compiller will fill the array with junk values if we dont do this 
+	for (int i = 0; i < i < 13; i++)
+		squares_per_row[i] = 0;
+
+	int row_size = SQUARE_MEDIAN * 2; //Pixel size of one row 
+	int bottom = GAME_AREA_BOTTOM - SQUARE_MEDIAN; // Center of bottom row 
+	int top = GAME_AREA_BOTTOM - (12 * row_size);
+	int num_lines = 0; // number of lines cleared 
+	int row; //multipurpose variable 
+
+	//Check for full lines 
+	for (int i = 0; i < g_OldSquares.size(); i++)
+	{
+		//get the row the current square is in 
+		row = (g_OldSquares[i]->GetCenterY() - top) / row_size; 
+		squares_per_row[row]++;
+	}
+
+	//Erase any full lines 
+	for (int line= 0; line < 13; line++)
+	{
+		//check for completed lines
+		if (squares_per_row[line] == SQUARES_PER_ROW)
+		{
+			//keep track of how many lines have been completed 
+			num_lines++;
+			//find any squares in current row and remove them 
+			for (int j = 0; j < g_OldSquares.size(); j++)
+			{
+				if (((g_OldSquares[j]->GetCenterY()- top) / row_size) == line)
+				{
+					//delete the squares 
+					delete g_OldSquares[j];
+					//removes it from the vector
+					g_OldSquares.erase(g_OldSquares.begin() + j);
+
+					//when we delete a square, from the vector, the next square takes it place.
+					//we have to be sure to stay at the current index, so we dont skip any squares
+					//For example if we delete the first square, the second now becomes the first. we have to stay 
+					//at the current first index so we cna check the second 
+					//square now the first 
+					j--;
+				}
+			}
+		}
+	}
+
+	//Move squares above cleared line down 
+	for (int i = 0; i < g_OldSquares.size(); i++)
+	{
+		for (int line = 0; line < 13; line++)
+		{
+			//determine if this row was filled 
+			if (squares_per_row[line] == SQUARES_PER_ROW)
+			{
+				//if it was, get the location of it whitin the game area
+				row = (g_OldSquares[i]->GetCenterY() - top) / row_size;
+
+				//Now move any squares above that row down one 
+				if (row < line)
+				{
+					g_OldSquares[i]->Move(DOWN);
+				}
+			}
+		}
+	}
+
+
+	
+	return num_lines; 
+}
 
 
 
