@@ -41,8 +41,7 @@ int g_Timer;
 void Menu();
 void Game();
 void Exit();
-void Win();
-void Lose();
+
 void HandleWinLoseInput();
 //win conditions 
 void CheckWin();
@@ -53,7 +52,12 @@ void HandleBottomCollision();
 void ChangeFocusBlock();
 int CheckCompletedLines();
 
-
+//Collisions Functions
+bool CheckEntityCollisions(cSquare* square, Direction dir);
+bool CheckWallCollisions(cSquare* square, Direction dir);
+bool CheckEntityCollisions(cBlock* block, Direction dir);
+bool CheckWallCollisions(cBlock* block, Direction dir);
+bool CheckRotationCollisions(cBlock* block);
 
 
 
@@ -161,12 +165,21 @@ void HandleGameInput()
 			}
 			return; //game is over exit the functoins 
 		}
+		
 		if (g_Event.type == SDL_KEYDOWN)
 		{
+			
 			if (g_Event.key.keysym.sym == SDLK_ESCAPE)
 			{
 				g_stateStack.pop();
 				return;
+			}
+			if (g_Event.key.keysym.sym == SDLK_UP)
+			{
+				if (!CheckRotationCollisions(g_FocusBlock))
+				{
+					g_FocusBlock->Rotate();
+				}
 			}
 			if (g_Event.key.keysym.sym == SDLK_LEFT) 
 			{
@@ -318,12 +331,7 @@ void DisplayText(string text, int x, int y , int w, int h, int size, int fR, int
 #pragma region Collider Functions
 
 
-//Collisions Functions
-bool CheckEntityCollisions(cSquare* square, Direction dir);
-bool CheckWallCollisions(cSquare* square, Direction dir);
-bool CheckEntityCollisions(cBlock* block, Direction dir);
-bool CheckWallCollisions(cBlock* block, Direction dir);
-bool CheckRotationCollisions(cBlock* block);
+
 
 
 bool CheckEntityCollisions(cSquare* square, Direction dir)
@@ -351,11 +359,11 @@ bool CheckEntityCollisions(cSquare* square, Direction dir)
 	//iterate trough the old square vector, checking for collisions
 	for (int i = 0; i < g_OldSquares.size(); i++)
 	{
-		if (abs(centerX - g_OldSquares[i]->GetCenterX()) < distance && abs(centerY - g_OldSquares[i]->GetCenterY()) < distance)
+		if ( (abs(centerX - g_OldSquares[i]->GetCenterX()) < distance )&& (abs(centerY - g_OldSquares[i]->GetCenterY()) < distance))
 		{
 			return true;
 		}
-		else { return false; }
+	
 	}
 
 
@@ -549,7 +557,6 @@ void Init()
 	g_NextBlock = new cBlock(NEXT_BLOCK_CIRCLE_X, NEXT_BLOCK_CIRCLE_Y, g_Bitmap, (BlockType)(rand() % 7));
 
 }
-
 void ShutDown() 
 {
 	//reference the sqaures of the focus and nect block so we dont lose their reference
@@ -858,9 +865,9 @@ int CheckCompletedLines()
 	int squares_per_row[13];
 
 	//the compiller will fill the array with junk values if we dont do this 
-	for (int i = 0; i < i < 13; i++)
+	for (int i = 0; i  < 13; i++)
 		squares_per_row[i] = 0;
-
+	
 	int row_size = SQUARE_MEDIAN * 2; //Pixel size of one row 
 	int bottom = GAME_AREA_BOTTOM - SQUARE_MEDIAN; // Center of bottom row 
 	int top = GAME_AREA_BOTTOM - (12 * row_size);

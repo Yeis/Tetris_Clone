@@ -17,7 +17,7 @@
 #define POINTS_PER_LINE 525 // points player receives for completing a line
 #define POINTS_PER_LEVEL 6300 // points player needs to advance a level
 #define INITIAL_SPEED 60 // initial interval at which focus block moves down
-#define SPEED_CHANGE 10 // the above interval is reduced by this much each level
+#define SPEED_CHANGE 100 // the above interval is reduced by this much each level
 
 
 #define SLIDE_TIME  15
