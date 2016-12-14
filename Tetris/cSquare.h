@@ -1,7 +1,5 @@
 #pragma once
-#include <SDL.h>
-#include "Defines.h"
-#include "Enums.h"
+	
 
 class cSquare
 {

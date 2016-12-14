@@ -941,7 +941,7 @@ int CheckCompletedLines()
 
 
 //Main method
-int main(int argc , char**argv) 
+int main(int argc , char* argv[]) 
 {
 	Init();
 	while (!g_stateStack.empty())
